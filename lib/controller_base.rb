@@ -2,6 +2,7 @@ require 'active_support'
 require 'active_support/core_ext'
 require 'erb'
 require_relative './session'
+require_relative './flash'
 
 class ControllerBase
   attr_reader :req, :res, :params
@@ -63,6 +64,10 @@ class ControllerBase
     @session ||= Session.new(@req)
   end
 
+  def flash
+    @flash ||= Flash.new(@req)
+  end
+
   # use this with the router to call action_name (:index, :show, :create...)
   def invoke_action(name)
     if protect_from_forgery? && req.request_method != "GET"
@@ -94,9 +99,10 @@ class ControllerBase
   attr_accessor :already_built_response
 
   def prepare_render_or_redirect
-    raise "duoble render error" if already_built_response?
+    raise "double render error" if already_built_response?
     @already_built_response = true
     session.store_session(@res)
+    flash.store_flash(@res)
   end
 
   def controller_name
